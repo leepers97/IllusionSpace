@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerFollow : MonoBehaviour
 {
     public Transform player; // 플레이어의 Transform
-    public float distance = 1.0f; // 플레이어와 복사된 오브젝트 간의 거리
+    public float distance = 5.0f; // 플레이어와 복사된 오브젝트 간의 거리
 
     void Update()
     {
