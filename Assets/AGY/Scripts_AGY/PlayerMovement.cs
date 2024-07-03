@@ -18,8 +18,8 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
-        Cursor.lockState = CursorLockMode.None; // 커서 항상 활성화
-        Cursor.visible = true; // 커서 항상 보이게 설정
+        Cursor.lockState = CursorLockMode.Locked;  // 커서 항상 활성화
+        Cursor.visible = false; // 커서 항상 보이게 설정
     }
 
     void Update()
