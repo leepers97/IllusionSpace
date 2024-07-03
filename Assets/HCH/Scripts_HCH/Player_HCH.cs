@@ -7,8 +7,11 @@ public class Player_HCH : MonoBehaviour
     public float moveSpeed = 10f;
     public float rotateSpeed = 40;
     public float jumpForce = 10;
-    public bool isJump = false; 
+    public bool isJump = false;
+    float jumpMoveSpeedClamp = 10;
+
     public Transform rotateTarget;
+    BoxCollider feetCol;
 
     // 속도 감쇠
     [Range(0.0f, 1.0f)]
@@ -18,10 +21,14 @@ public class Player_HCH : MonoBehaviour
     Vector3 lastMousePos;
     Vector3 currentRotation;
 
+    // 테스트용 텔레포트
+    public Transform[] TelePos;
+
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        feetCol = GetComponentInChildren<BoxCollider>(); // 나중에 점프가능 판정 수정예정
 
         lastMousePos = Input.mousePosition;
         currentRotation = rotateTarget.rotation.eulerAngles;
@@ -44,22 +51,29 @@ public class Player_HCH : MonoBehaviour
         {
             CharacterJump();
         }
+
+        // 테스트용 텔레포트
+        TestTeleport();
     }
 
     void CharacterMove()
     {
         Vector3 newVelocity = rb.velocity;
         // 감쇠 효과
-        if (!isJump)
-        {
-            newVelocity *= (1.0f - drag);
-        }
+        if (!isJump) newVelocity *= (1.0f - drag);
 
         Vector3 f = rotateTarget.forward; f.y = 0.0f; f.Normalize();
         Vector3 r = rotateTarget.right; r.y = 0.0f; r.Normalize();
 
         newVelocity += f * Input.GetAxis("Vertical") * moveSpeed * Time.fixedDeltaTime;
         newVelocity += r * Input.GetAxis("Horizontal") * moveSpeed * Time.fixedDeltaTime;
+
+        // 점프 중일 때 이동 속도를 제한
+        if (isJump)
+        {
+            newVelocity.x = Mathf.Clamp(newVelocity.x, -moveSpeed / jumpMoveSpeedClamp, moveSpeed / jumpMoveSpeedClamp);
+            newVelocity.z = Mathf.Clamp(newVelocity.z, -moveSpeed / jumpMoveSpeedClamp, moveSpeed / jumpMoveSpeedClamp);
+        }
 
         rb.velocity = newVelocity;
     }
@@ -68,8 +82,7 @@ public class Player_HCH : MonoBehaviour
     {
         // 점프 상태일 때 점프 불가능
         if (isJump) return;
-        //rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        transform.position += Vector3.up * jumpForce * Time.deltaTime;
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         isJump = true;
     }
 
@@ -84,12 +97,26 @@ public class Player_HCH : MonoBehaviour
         rotateTarget.rotation = Quaternion.Euler(currentRotation);
     }
 
+    void TestTeleport()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            transform.position = TelePos[0].position;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            transform.position = TelePos[1].position;
+        }
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         // 땅에 닿으면 점프 가능
-        if(collision.gameObject.layer == 6)
-        {
-            isJump = false;
-        }
+        //if(collision.gameObject.layer == 7)
+        //{
+        //    isJump = false;
+        //}
+
+        isJump = false;
     }
 }
