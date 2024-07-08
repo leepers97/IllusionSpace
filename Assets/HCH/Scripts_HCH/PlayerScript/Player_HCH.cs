@@ -12,25 +12,25 @@ public class Player_HCH : MonoBehaviour
 
     public Transform rotateTarget;
     BoxCollider feetCol;
+    ConstantForce cf;
 
     // 속도 감쇠
     [Range(0.0f, 1.0f)]
     public float drag = 0.0f;
 
     Rigidbody rb;
-    Vector3 lastMousePos;
     Vector3 currentRotation;
 
-    // 테스트용 텔레포트
-    public Transform[] TelePos;
+    // 우클릭 시 카메라 이동 막기 위한 변수
+    public bool isCamMove = true;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        cf = GetComponent<ConstantForce>(); // 점프시에 켜서 중력 강하게 먹이기
         feetCol = GetComponentInChildren<BoxCollider>(); // 나중에 점프가능 판정 수정예정
 
-        lastMousePos = Input.mousePosition;
         currentRotation = rotateTarget.rotation.eulerAngles;
     }
 
@@ -38,6 +38,9 @@ public class Player_HCH : MonoBehaviour
     {
         // 캐릭터 움직임
         CharacterMove();
+
+        // 캐릭터 방향
+        CharacterRoatation();
     }
 
     // Update is called once per frame
@@ -51,9 +54,6 @@ public class Player_HCH : MonoBehaviour
         {
             CharacterJump();
         }
-
-        // 테스트용 텔레포트
-        TestTeleport();
     }
 
     void CharacterMove()
@@ -84,29 +84,21 @@ public class Player_HCH : MonoBehaviour
         if (isJump) return;
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         isJump = true;
+        cf.enabled = true;
     }
 
     void CameraRotaion()
     {
-        Vector2 mouseDelta = Input.mousePosition - lastMousePos;
-        lastMousePos = Input.mousePosition;
-
-        currentRotation.y += mouseDelta.x * rotateSpeed * Time.deltaTime;
-        currentRotation.x = Mathf.Clamp(currentRotation.x - mouseDelta.y * rotateSpeed * Time.deltaTime, -70.0f, 70.0f);
+        if (!isCamMove) return;
+        currentRotation.y += Input.GetAxis("Mouse X") * rotateSpeed * Time.deltaTime;
+        currentRotation.x = Mathf.Clamp(currentRotation.x - Input.GetAxis("Mouse Y") * rotateSpeed * Time.deltaTime, -70.0f, 70.0f);
 
         rotateTarget.rotation = Quaternion.Euler(currentRotation);
     }
 
-    void TestTeleport()
+    void CharacterRoatation()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            transform.position = TelePos[0].position;
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            transform.position = TelePos[1].position;
-        }
+        this.transform.rotation = rotateTarget.rotation;
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -118,5 +110,6 @@ public class Player_HCH : MonoBehaviour
         //}
 
         isJump = false;
+        cf.enabled = false;
     }
 }

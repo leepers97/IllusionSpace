@@ -38,10 +38,11 @@ public class InteractiveLightObject_HCH : MonoBehaviour
         light.range = scaleMultiplier * lightRangePower;
         light.intensity = scaleMultiplier * lightIntensityPower;
 
-        // 근처 오브젝트 탐지
-        DetectTransparent();
+        // 근처 오브젝트 탐지(수정함 -> 일단 빛 세기, 범위 조절만으로도 충분)
+        //DetectTransparent();
     }
 
+    // 사용 안함
     void DetectTransparent()
     {
         scanRange = light.range;
