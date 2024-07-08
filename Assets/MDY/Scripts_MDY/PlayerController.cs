@@ -9,18 +9,15 @@ public class PlayerController : MonoBehaviour
     public float mouseSensitivity = 100.0f;
     public Transform cameraTransform;
     public GameObject crosshair;
-    public Transform backgroundObject;  // 배경 물체
 
     private CharacterController characterController;
     private Vector3 velocity;
     private bool isGrounded;
     private GameObject grabbedObject;
     private float xRotation = 0f;
-    private Vector3 initialScale;
-    private float initialDistance;
-    private Vector3 initialPosition;
-    private float backgroundInitialDistance;
-    private bool isDragging = false;
+    private bool isGrabbing = false; // 물체가 그랩된 상태를 유지하는 변수
+    private float initialGrabDistance; // 물체와 카메라 사이의 초기 거리
+    private Vector3 initialScale; // 물체의 초기 크기
 
     void Start()
     {
@@ -67,18 +64,19 @@ public class PlayerController : MonoBehaviour
         // 물체 잡기 및 드래그
         if (Input.GetMouseButtonDown(0))
         {
-            TryGrabObject();
+            if (isGrabbing)
+            {
+                ReleaseObject();
+            }
+            else
+            {
+                TryGrabObject();
+            }
         }
 
-        if (Input.GetMouseButtonUp(0))
+        if (isGrabbing && grabbedObject != null)
         {
-            ReleaseObject();
-        }
-
-        if (grabbedObject != null)
-        {
-            DragObject();
-            UpdateObjectScale();
+            UpdateObjectPosition();
         }
     }
 
@@ -93,11 +91,13 @@ public class PlayerController : MonoBehaviour
             {
                 grabbedObject = hit.collider.gameObject;
                 grabbedObject.GetComponent<Rigidbody>().isKinematic = true;
-                initialScale = grabbedObject.transform.localScale;
-                initialDistance = Vector3.Distance(cameraTransform.position, grabbedObject.transform.position);
-                initialPosition = grabbedObject.transform.position;
-                backgroundInitialDistance = Vector3.Distance(cameraTransform.position, backgroundObject.position);
-                isDragging = true;
+                grabbedObject.GetComponent<ObjectCloner>().SetGrabbed(true); // 물체가 잡혔음을 설정
+                initialGrabDistance = Vector3.Distance(cameraTransform.position, grabbedObject.transform.position);
+                initialScale = grabbedObject.transform.localScale; // 물체의 초기 크기 저장
+                isGrabbing = true; // 물체가 그랩된 상태로 변경
+
+                // 물체를 바로 그 위치로 이동시키되 크기는 변하지 않음
+                UpdateObjectPosition();
             }
         }
     }
@@ -107,31 +107,19 @@ public class PlayerController : MonoBehaviour
         if (grabbedObject != null)
         {
             grabbedObject.GetComponent<Rigidbody>().isKinematic = false;
+            grabbedObject.GetComponent<ObjectCloner>().SetGrabbed(false); // 물체가 놓였음을 설정
             grabbedObject = null;
-            isDragging = false;
+            isGrabbing = false; // 물체가 그랩되지 않은 상태로 변경
         }
     }
 
-    void DragObject()
+    void UpdateObjectPosition()
     {
+        if (grabbedObject == null) return;
+
         Ray ray = cameraTransform.GetComponent<Camera>().ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2));
-        Vector3 targetPosition = ray.GetPoint(initialDistance);
+        Vector3 targetPosition = ray.GetPoint(initialGrabDistance);
+
         grabbedObject.transform.position = targetPosition;
-    }
-
-    void UpdateObjectScale()
-    {
-        if (isDragging)
-        {
-            // 배경 물체와 플레이어 사이의 거리 계산
-            float currentBackgroundDistance = Vector3.Distance(cameraTransform.position, backgroundObject.position);
-
-            // 물체와 배경 사이의 거리 계산
-            float objectToBackgroundDistance = Vector3.Distance(grabbedObject.transform.position, backgroundObject.position);
-
-            // 배경과 물체 사이의 거리 변화에 따라 크기 조정
-            float scaleMultiplier = backgroundInitialDistance / objectToBackgroundDistance;
-            grabbedObject.transform.localScale = initialScale * scaleMultiplier;
-        }
     }
 }
