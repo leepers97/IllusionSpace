@@ -76,6 +76,7 @@ public class Player_HCH : MonoBehaviour
         }
 
         rb.velocity = newVelocity;
+        print(rb.velocity);
     }
 
     void CharacterJump()

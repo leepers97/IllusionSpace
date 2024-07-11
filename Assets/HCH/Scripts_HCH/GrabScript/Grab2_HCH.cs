@@ -4,8 +4,9 @@ using UnityEngine;
 // 1. 원근법 매커니즘 수정 필요(잡고 이동 시 버벅거림)
 // 2. 클릭 후 이동 중에 다른 오브젝트와 충돌 막기
 
-public class Grab_HCH : MonoBehaviour
+public class Grab2_HCH : MonoBehaviour
 {
+
     [Header("Components")]
     public Transform target;
 
@@ -14,7 +15,7 @@ public class Grab_HCH : MonoBehaviour
     public LayerMask ignoreTargetMask;
     // 벽과 물체 사이의 최소거리값
     public float offsetFactor;
-    
+
     // 카메라와 오브젝트간의 원래 거리
     float originalDistance;
     // 크기 변경 전 오브젝트의 원래 크기
@@ -40,7 +41,9 @@ public class Grab_HCH : MonoBehaviour
     {
         HandleInput();
         RotateTarget();
-        ResizeTarget();
+        //ResizeTarget();
+        Debug.DrawRay(transform.position, transform.forward * 20, Color.red);
+
     }
 
     void HandleInput()
@@ -74,10 +77,11 @@ public class Grab_HCH : MonoBehaviour
                     // 일단 바뀔 타겟 오브젝트 스케일 값에 현재 타겟 오브젝트 스케일 값 저장
                     targetScale = target.localScale;
 
+                    target.gameObject.transform.localScale = originalScale / originalDistance;
+                    target.gameObject.transform.SetParent(transform);
+                    target.transform.localPosition = new Vector3(0, 0, 1.0f);
 
                     target.gameObject.layer = LayerMask.NameToLayer("Targeting");
-                    //int targetingLayer = LayerMask.NameToLayer("Targeting");
-                    //SetChildLayerRecursion(target.gameObject, targetingLayer);
                 }
             }
             // 다시 좌클릭을 한다면(현재 선택된 타겟이 있다면)
@@ -88,18 +92,29 @@ public class Grab_HCH : MonoBehaviour
                 {
                     target.GetComponent<DividedCube_HCH>().DivideCube();
                 }
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity, ignoreTargetMask))
+                {
+                    float currentDistance = Vector3.Distance(transform.position, hit.point);
+                    currentDistance -= offsetFactor;
 
-                // 오브젝트의 물리상태를 다시 되돌리고 다시 다른 오브젝트와 충돌을 가능하게 한다(포탈은 예외)
-                target.GetComponent<Rigidbody>().isKinematic = false;
-                if(!target.gameObject.CompareTag("Portal")) target.GetComponent<Collider>().isTrigger = false;
-
-                // 타겟을 삭제
-                target.gameObject.layer = LayerMask.NameToLayer("Targetable");
-                //int targetingLayer = LayerMask.NameToLayer("Targetable");
-                //SetChildLayerRecursion(target.gameObject, targetingLayer);
-                target = null;
+                    Debug.Log(currentDistance);
+                    target.transform.localScale *= currentDistance;
+                    Vector3 targetPos = target.transform.localPosition;
+                    targetPos.z *= currentDistance;
+                    target.transform.localPosition = targetPos;
+                    // target.transform.SetParent(null);
+                    target.transform.parent = null;
 
 
+                    // 오브젝트의 물리상태를 다시 되돌리고 다시 다른 오브젝트와 충돌을 가능하게 한다
+                    target.GetComponent<Rigidbody>().isKinematic = false;
+                    target.GetComponent<Collider>().isTrigger = false;
+
+                    // 타겟을 삭제
+                    target.gameObject.layer = LayerMask.NameToLayer("Targetable");
+                    target = null;
+                }
             }
         }
     }
@@ -122,6 +137,7 @@ public class Grab_HCH : MonoBehaviour
         // 우클릭 해제하면 다시 카메라 이동
         if (Input.GetMouseButtonUp(1)) player.isCamMove = true;
     }
+       
 
     public float smoothSpeed = 10f;
     void ResizeTarget()
@@ -164,18 +180,6 @@ public class Grab_HCH : MonoBehaviour
 
             // 타겟 오브젝트의 스케일 값에 원래 스케일 값을 곱함
             target.localScale = targetScale;
-        }
-    }
-
-    void SetChildLayerRecursion(GameObject go, int layer)
-    {
-        // 부모 오브젝트 레이어 변경
-        go.layer = layer;
-
-        // 모든 자식 오브젝트 레이어 변경
-        foreach(Transform child in go.transform)
-        {
-            SetChildLayerRecursion(child.gameObject, layer);
         }
     }
 }
