@@ -6081,6 +6081,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DividableCube2
       objectReference: {fileID: 0}
+    - target: {fileID: 3074076155801882683, guid: f3a5fd8d7af34a34ebfb8ba6f05c2d70, type: 3}
+      propertyPath: m_TagString
+      value: DivideCube2
+      objectReference: {fileID: 0}
     - target: {fileID: 6021964741019774475, guid: f3a5fd8d7af34a34ebfb8ba6f05c2d70, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.9
