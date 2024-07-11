@@ -7,6 +7,8 @@ TagManager:
   - DivideCube
   - DivideCube2
   - Portal
+  - Grab
+  - Clone
   layers:
   - Default
   - TransparentFX
