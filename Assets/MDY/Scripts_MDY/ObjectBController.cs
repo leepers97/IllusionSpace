@@ -1,20 +1,46 @@
 using System.Collections;
 using UnityEngine;
 
-public class ObjectBFader : MonoBehaviour
+public class ObjectBController : MonoBehaviour
 {
     public float fadeDuration = 2.0f;
     private bool isFading = false;
     private Renderer rend;
+    private int collisionCount = 0;
+    public int requiredCollisions = 2; // 감지되어야 하는 A 물체의 총 수
 
     private void Start()
     {
         rend = GetComponent<Renderer>();
     }
 
+    public void IncrementCollisionCount()
+    {
+        collisionCount++;
+        CheckActivation();
+    }
+
+    public void DecrementCollisionCount()
+    {
+        collisionCount--;
+        CheckActivation();
+    }
+
+    private void CheckActivation()
+    {
+        if (collisionCount >= requiredCollisions)
+        {
+            StartFadingOut();
+        }
+        else
+        {
+            StartFadingIn();
+        }
+    }
+
     public void StartFadingOut()
     {
-        if (!isFading && gameObject.activeSelf) 
+        if (!isFading && gameObject.activeSelf)
         {
             StartCoroutine(FadeOut());
         }
@@ -65,5 +91,4 @@ public class ObjectBFader : MonoBehaviour
         color.a = alpha;
         rend.material.color = color;
     }
-    
 }

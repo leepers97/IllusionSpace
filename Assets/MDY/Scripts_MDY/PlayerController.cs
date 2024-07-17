@@ -128,6 +128,9 @@ public class PlayerController : MonoBehaviour
 
                 initialDistance = Vector3.Distance(playerCamera.transform.position, grabbedObject.GetComponent<Renderer>().bounds.center);
                 initialScale = grabbedObject.transform.localScale;
+
+                // 물체의 중심을 기준으로 위치를 맞추기
+                grabbedObject.transform.position = grabbedObject.GetComponent<Renderer>().bounds.center;
             }
         }
     }
@@ -162,7 +165,7 @@ public class PlayerController : MonoBehaviour
                     clonedCollider.enabled = false;
                 }
 
-                StartCoroutine(DestroyCloneAfterDelay(0.25f)); // Set delay to 0.1 seconds
+                StartCoroutine(DestroyCloneAfterDelay(0.3f)); // Set delay to 0.1 seconds
             }
         }
     }
@@ -247,6 +250,9 @@ public class PlayerController : MonoBehaviour
     void MoveObjectToCrosshair()
     {
         Vector3 targetPosition = playerCamera.transform.position + playerCamera.transform.forward * fixedGrabDistance;
+        Vector3 objectCenter = grabbedObject.GetComponent<Renderer>().bounds.center;
+
+        // 물체의 중심을 기준으로 위치 조정
         grabbedObject.transform.position = targetPosition;
 
         float scaleMultiplier = fixedGrabDistance / initialDistance;
